@@ -1,0 +1,74 @@
+MAPPY — TEST SCENARIOS
+======================
+
+--- HAPPY PATH ---
+
+1. Two stops, one zone
+   Input: 2 addresses close together, zones=1
+   Expected: one zone, route visits both stops, distance > 0 km
+
+2. Many stops, multiple zones
+   Input: 10 addresses spread across a city, zones=3
+   Expected: 3 colored zones, each with a subset of stops, routes don't overlap badly
+
+3. Stops already in order
+   Input: 5 stops along a single straight road, zones=1
+   Expected: route order matches geographic order, distance is minimal
+
+4. Single stop per zone
+   Input: 3 stops, zones=3
+   Expected: 3 zones each with exactly 1 stop, each route has length 0 km
+
+5. Large input
+   Input: 50 addresses, zones=5
+   Expected: returns within a few seconds, all stops assigned to exactly one zone
+
+--- EDGE CASES ---
+
+6. Minimum input
+   Input: 1 stop, zones=1
+   Expected: one zone with one stop, distance = 0
+
+7. zones > number of stops
+   Input: 2 stops, zones=5
+   Expected: graceful handling — either error message or 2 non-empty zones + 3 empty ones
+
+8. Duplicate coordinates
+   Input: two stops with identical lat/lon
+   Expected: both appear in output, distance between them = 0
+
+9. Stops at the exact same location across zones
+   Input: cluster of 6 points all on top of each other, zones=2
+   Expected: split into 2 zones without crashing
+
+10. Very far apart stops (different countries)
+    Input: one stop in Paris, one in Berlin, zones=1
+    Expected: large distance (~880 km), single zone, no crash
+
+--- API / SERVER ---
+
+11. Missing field in request
+    Input: JSON without "zones" field
+    Expected: 400 error or clear error message
+
+12. Invalid JSON
+    Input: malformed JSON body
+    Expected: server returns error, does not crash
+
+13. Empty vehicles array
+    Input: { "vehicles": [], "zones": 1 }
+    Expected: response with empty zones, server does not crash
+
+14. zones = 0
+    Input: valid vehicles, zones=0
+    Expected: error or 0 zones returned — no division-by-zero crash
+
+--- ROUTING QUALITY ---
+
+15. Known optimal route (3 stops triangle)
+    Input: 3 stops forming an equilateral triangle, zones=1
+    Expected: route visits all 3 in some order, total distance close to perimeter
+
+16. Highway cost scraping (future feature)
+    Scenario: given a route that uses a highway, fetch toll cost from autoroute-eco.fr
+    Expected: cheapest toll alternative is shown alongside the fastest route

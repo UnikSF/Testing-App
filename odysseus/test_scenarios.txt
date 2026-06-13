@@ -1,0 +1,70 @@
+ODYSSEUS FOR DOCKER — TEST SCENARIOS
+=====================================
+
+--- STARTUP ---
+
+1. Fresh start (no volumes)
+   Steps: clone repo, copy .env.example to .env, docker compose up
+   Expected: images pull, model downloads, UI accessible at localhost:3000 within ~5 min
+
+2. Warm start (volumes already exist)
+   Steps: docker compose down (keep volumes), docker compose up
+   Expected: starts in <30 seconds, model pull is a no-op, UI immediately available
+
+3. Wrong OLLAMA_PULL_MODELS value
+   Steps: set OLLAMA_PULL_MODELS=doesnotexist:latest in .env, docker compose up
+   Expected: container logs show pull error, does not silently hang
+
+4. COMPOSE_FILE not set (uses host Ollama path)
+   Steps: remove COMPOSE_FILE from .env, ensure host has no Ollama running
+   Expected: Odysseus starts but shows "no models available" or connection error — no crash
+
+--- CHAT FUNCTIONALITY ---
+
+5. Send a simple message
+   Input: "What is 2 + 2?"
+   Expected: model responds correctly, response streams or appears within timeout
+
+6. Multi-turn conversation
+   Steps: send 3 messages in a row referencing earlier context
+   Expected: model maintains context across turns
+
+7. Long input
+   Input: paste a 2000-word text, ask a question about it
+   Expected: response generated, no timeout or truncation error shown to user
+
+8. Empty message
+   Input: send an empty message or only whitespace
+   Expected: UI does not crash, either ignores or shows validation message
+
+9. Model picker (if multiple models configured)
+   Steps: set OLLAMA_PULL_MODELS="qwen2.5:1.5b qwen2.5-coder:7b"
+   Expected: both models appear in the UI picker, switching works
+
+--- CONTAINER / INFRASTRUCTURE ---
+
+10. Graceful shutdown
+    Steps: docker compose stop while a chat response is streaming
+    Expected: containers stop cleanly within the kill grace period, no corrupted data
+
+11. Ollama healthcheck
+    Steps: docker compose up, watch logs
+    Expected: odysseus service starts only after ollama reports healthy
+
+12. Volume persistence
+    Steps: pull a large model, docker compose down, docker compose up
+    Expected: model not re-downloaded, same model data in volume
+
+13. Port conflict
+    Steps: run something else on port 3000, then docker compose up
+    Expected: compose fails with a clear port-already-in-use error
+
+--- GPU OVERLAYS ---
+
+14. NVIDIA overlay
+    Steps: use gpu.nvidia.yml overlay on a machine with an NVIDIA GPU
+    Expected: `nvidia-smi` visible in the ollama container, inference faster than CPU
+
+15. No GPU on GPU overlay
+    Steps: apply gpu.nvidia.yml on a machine with no NVIDIA GPU
+    Expected: clear error message about missing device, not a silent hang

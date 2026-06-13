@@ -1,0 +1,100 @@
+MYSTERY SANTA — TEST SCENARIOS
+================================
+
+--- REGISTRATION & LOGIN ---
+
+1. Register a new participant
+   Steps: open app, enter first name "Alice" and last name "Dupont", confirm
+   Expected: account created, Alice is in the participant list
+
+2. Login as existing participant
+   Steps: enter the same first + last name used at registration
+   Expected: logged in as Alice, see her own profile
+
+3. Wrong name at login
+   Steps: enter a name that was never registered
+   Expected: error "name not found" or prompts to register
+
+4. Duplicate registration (same name)
+   Steps: try to register "Alice Dupont" a second time
+   Expected: error or redirect to login — no duplicate accounts
+
+5. Case sensitivity
+   Steps: register as "alice dupont", try logging in as "Alice Dupont"
+   Expected: consistent behavior (either both work or both fail — no silent mismatch)
+
+--- PARTICIPANT MANAGEMENT (organizer view) ---
+
+6. View all participants
+   Steps: organizer opens admin panel
+   Expected: full list of registered participants visible
+
+7. Remove a participant before the draw
+   Steps: organizer removes one participant from the list
+   Expected: participant removed, remaining list valid for draw
+
+8. Cannot remove after draw
+   Steps: after draw is triggered, organizer tries to remove a participant
+   Expected: action blocked or warning shown — draw is final
+
+--- DRAW / ASSIGNMENT ---
+
+9. Trigger the draw (happy path)
+   Steps: 4+ participants registered, organizer clicks "Launch draw"
+   Expected: each participant assigned to exactly one other, no one assigned to themselves
+
+10. Each participant receives exactly one assignment
+    Steps: draw with 6 participants
+    Expected: 6 unique (giver → receiver) pairs, no participant is both giver and receiver
+
+11. Draw with minimum participants (2 people)
+    Steps: register exactly 2 participants, trigger draw
+    Expected: Alice gifts Bob, Bob gifts Alice — valid
+
+12. Draw with odd number (3 people)
+    Steps: register 3 participants, trigger draw
+    Expected: valid circular assignment (A→B, B→C, C→A or similar), no one left out
+
+13. Draw not triggered yet — participants cannot see assignment
+    Steps: participant logs in before draw is triggered
+    Expected: "waiting for draw" message, no name shown
+
+14. Draw triggered — participant sees their assignment
+    Steps: draw triggered, participant logs in
+    Expected: "You are gifting: Bob Martin" shown clearly
+
+15. Re-triggering draw blocked
+    Steps: draw already done, organizer tries to trigger it again
+    Expected: error or confirmation that draw is final; no silent re-assignment
+
+--- PWA BEHAVIOR ---
+
+16. Install as PWA
+    Steps: open in mobile browser, add to home screen
+    Expected: installs successfully, opens without browser chrome
+
+17. View assignment offline
+    Steps: open app, load assignment, go offline, reopen app
+    Expected: cached assignment still visible offline
+
+18. Register while offline
+    Steps: disable network, try to register
+    Expected: error shown or registration queued — no silent data loss
+
+--- EDGE CASES ---
+
+19. Single participant
+    Steps: only one person registered, organizer triggers draw
+    Expected: error — cannot assign someone to themselves
+
+20. Very long name
+    Input: first name 50 characters, last name 50 characters
+    Expected: stored and displayed correctly, no UI overflow
+
+21. Special characters in name
+    Input: "Jean-François Lévy"
+    Expected: saved and displayed correctly, login works with same string
+
+22. Organizer also participates
+    Steps: organizer registers as a participant, triggers draw
+    Expected: organizer included in the draw, also receives an assignment

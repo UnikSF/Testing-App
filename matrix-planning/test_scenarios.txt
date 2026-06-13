@@ -1,0 +1,83 @@
+MATRIX PLANNING — TEST SCENARIOS
+==================================
+
+Note: these scenarios are written against the intended feature set.
+Update them as the design is finalized.
+
+--- SCHEDULE CREATION ---
+
+1. Add a class slot
+   Steps: create a "Maths" class, assign teacher "Prof. Martin", room "A101", Monday 8h-10h
+   Expected: slot appears in the weekly grid at the right time and room
+
+2. Add multiple slots for the same subject
+   Steps: add "English" on Monday 10h and Wednesday 14h for the same group
+   Expected: both slots appear, no conflict since they are on different days/times
+
+3. Fill a full week
+   Steps: add 20+ slots covering all weekdays for several groups
+   Expected: schedule renders without overlap for any room or teacher
+
+--- CONFLICT DETECTION ---
+
+4. Room double-booking
+   Steps: assign two classes to the same room at the same time
+   Expected: conflict indicator shown, user warned before saving
+
+5. Teacher double-booking
+   Steps: assign the same teacher to two different classes at the same time
+   Expected: conflict detected, teacher cannot be in two places
+
+6. Student group overlap
+   Steps: schedule two required classes for the same student group at the same time
+   Expected: conflict flagged — students can't attend both
+
+7. Room capacity exceeded
+   Steps: assign a group of 40 students to a room with capacity 30
+   Expected: warning shown about capacity
+
+--- AVAILABILITY CONSTRAINTS ---
+
+8. Teacher unavailable slot
+   Steps: mark Prof. Martin as unavailable Wednesday afternoon, then try to schedule a class
+   Expected: slot blocked or warning shown
+
+9. Room closed for maintenance
+   Steps: mark room "B202" unavailable on Friday
+   Expected: room not available for Friday scheduling
+
+10. Respect availability during auto-generation
+    Steps: run schedule generator with teacher and room constraints set
+    Expected: generated schedule never violates any availability rule
+
+--- EDITING ---
+
+11. Move a class slot (drag or reschedule)
+    Steps: reschedule "Physics" from Tuesday 9h to Thursday 11h
+    Expected: slot moves, old slot freed, new slot checked for conflicts
+
+12. Delete a class slot
+    Steps: remove a slot from the schedule
+    Expected: slot removed, room and teacher freed for that time
+
+13. Change room for an existing slot
+    Steps: reassign a class from "A101" to "C301"
+    Expected: old room freed, new room checked for availability and capacity
+
+--- EDGE CASES ---
+
+14. Empty schedule
+    Steps: open the app with no data
+    Expected: blank grid shown with no errors, prompts to add classes
+
+15. All rooms full at a given time
+    Steps: fill every room for Monday 10h, try to add another class
+    Expected: no available room shown, user informed
+
+16. Teacher with back-to-back classes all day
+    Steps: schedule a teacher for every slot Monday
+    Expected: valid if no actual conflict, but ideally warns about no break
+
+17. Schedule with a single class
+    Steps: one class, one teacher, one room, one slot
+    Expected: appears correctly, no false conflict alerts

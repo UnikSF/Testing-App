@@ -1,0 +1,96 @@
+FINANCE WATCHER — TEST SCENARIOS
+=================================
+
+--- MANUAL EXPENSE ENTRY ---
+
+1. Add a basic expense
+   Steps: open app, click Add Expense, fill in amount (15.50 EUR), description "Lunch", category "Food"
+   Expected: expense appears in the list, balance updates correctly
+
+2. Add expense with no category
+   Steps: fill in amount and description, leave category blank
+   Expected: entry saved, auto-categorization triggered (rule or Claude API)
+
+3. Edit an existing expense
+   Steps: click an existing expense, change the amount from 15 to 20 EUR
+   Expected: list reflects new amount, totals/charts update
+
+4. Delete an expense
+   Steps: delete a manually entered expense
+   Expected: removed from list, totals update, no orphaned data
+
+5. Add a future-dated expense
+   Steps: set the date to tomorrow
+   Expected: saved correctly, appears in the right date group
+
+--- BANK SYNC (GOCARDLESS) ---
+
+6. Initial bank connection
+   Steps: go to Settings, connect a French bank via GoCardless
+   Expected: OAuth flow completes, transactions appear after sync
+
+7. Sync transactions
+   Steps: trigger a manual sync after bank connection
+   Expected: new transactions imported, duplicates not created
+
+8. Transaction already categorized by rule
+   Steps: import a transaction with description matching a saved rule
+   Expected: category assigned automatically, no Claude API call made
+
+9. Unknown transaction goes to Claude
+   Steps: import a transaction with an unrecognized description
+   Expected: Claude API called, category suggestion shown to user
+
+10. Correct a wrong category
+    Steps: change the category on a transaction Claude got wrong
+    Expected: correction saved, a new rule is created for that pattern
+
+--- BUDGETS & GOALS ---
+
+11. Create a budget
+    Steps: create a monthly "Groceries" budget of 200 EUR
+    Expected: appears on dashboard, progress bar shows current spend vs 200 EUR
+
+12. Budget exceeded
+    Steps: add expenses that push a budget over its limit
+    Expected: budget bar turns red or shows over-budget indicator
+
+13. Create a savings goal
+    Steps: add "Vacation" goal of 1000 EUR, target date in 6 months
+    Expected: goal card shows progress and monthly savings needed to hit target
+
+14. Recurring transaction detected
+    Steps: import 3 monthly transactions with the same description
+    Expected: app flags them as recurring, shows in recurring section
+
+--- CHARTS & INSIGHTS ---
+
+15. Monthly spending chart
+    Steps: open the dashboard after adding expenses across multiple categories
+    Expected: Recharts chart renders correctly with correct EUR values
+
+16. AI spending insight
+    Steps: trigger an AI insight after having at least 10 transactions
+    Expected: meaningful summary shown (e.g. "You spent 30% more on dining this month")
+
+--- EDGE CASES ---
+
+17. Zero-amount expense
+    Input: amount = 0 EUR
+    Expected: validation error or saved as 0 with a warning
+
+18. Negative amount (refund)
+    Input: amount = -25 EUR
+    Expected: accepted as a refund/credit, affects totals correctly
+
+19. Very large amount
+    Input: amount = 999999.99 EUR
+    Expected: saved and displayed correctly without overflow
+
+20. No internet (GoCardless unavailable)
+    Steps: disable network, trigger bank sync
+    Expected: graceful error shown, local data untouched, no crash
+
+21. Empty database (first launch)
+    Steps: delete data/finance.db, restart app
+    Expected: fresh database created, empty state UI shown with no errors
