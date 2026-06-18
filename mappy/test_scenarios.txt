@@ -72,3 +72,57 @@ MAPPY — TEST SCENARIOS
 16. Highway cost scraping (future feature)
     Scenario: given a route that uses a highway, fetch toll cost from autoroute-eco.fr
     Expected: cheapest toll alternative is shown alongside the fastest route
+
+--- ANDROID (Appium) — USER JOURNEY ---
+    Framework : Python + pytest + appium-python-client
+    Entry point : mappy/android/
+    Run : pytest tests/ -v --html=report.html   (Appium server + émulateur requis)
+
+    Persona : utilisateur lambda — cherche une épicerie ouverte, va à une adresse, rentre chez lui.
+    Domicile simulé : Paris 1er (48.8566, 2.3522) via driver.set_location()
+
+17. Recherche épicerie ouverte
+    Rechercher "épicerie" → filter "Ouvert maintenant" → sélectionner le 1er résultat
+    Expected: résultats non vides, POI affiché avec statut "Ouvert", bouton "Itinéraire" présent
+
+18. Lancer un itinéraire depuis le POI
+    Depuis la fiche épicerie → "Itinéraire"
+    Expected: écran route options affiché avec au moins 1 alternative
+
+19. Navigation même pays (Paris → Marseille / Lyon / Rivoli)
+    Expected: ≥ 2 options de route, distance > 0, navigation démarrable avec instructions
+
+20. Option éco — prix de péage affiché
+    Sélectionner la route "Éco"
+    Expected: prix de péage non nul affiché
+
+21. Navigation transfrontalière — même pays de départ ou non
+    Destinations : Bruxelles (Belgique), Londres (Royaume-Uni), Berlin (Allemagne)
+    Expected: itinéraire calculé, distance non nulle, au moins 1 option de route
+
+22. Rentrer chez moi depuis l'épicerie
+    Position simulée = EPICERIE (48.8600, 2.3480), appuyer "Rentrer chez moi"
+    Expected: itinéraire vers domicile affiché
+
+23. Rentrer chez moi sans domicile configuré
+    Expected: invite à configurer le domicile (ne pas crasher)
+
+24. Rentrer chez moi depuis le domicile
+    Position simulée = HOME
+    Expected: message "déjà chez vous" OU itinéraire trivial (distance ≈ 0)
+
+25. Clustering carte — zoom arrière
+    Effectuer un pinch-close sur la carte
+    Expected: clusters (bulles numérotées) visibles
+
+26. Clustering carte — zoom avant
+    Pinch-close puis pinch-open
+    Expected: clusters disparaissent, POI individuels affichés
+
+27. Prix péage éco ≠ prix péage rapide
+    Route Paris → Lyon, comparer les prix péage des options "Rapide" et "Éco"
+    Expected: montants différents
+
+28. Ajout d'un lieu en favori
+    Rechercher "Tour Eiffel" → fiche POI → "Ajouter aux favoris"
+    Expected: bouton bascule sur "Retirer des favoris"
