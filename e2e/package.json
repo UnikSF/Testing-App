@@ -1,0 +1,13 @@
+{
+  "name": "homelab-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright black-box E2E tests for the Fiddle's Tales homelab",
+  "scripts": {
+    "test": "playwright test",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}
