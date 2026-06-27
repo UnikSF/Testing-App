@@ -53,11 +53,9 @@ test("digital asset links published for the TWA APKs", async ({ request }) => {
   expect(pkgs).toContain("net.fiddlestale.finance");
 });
 
-// KNOWN BROKEN on the live NAS (found by this suite 2026-06-21): /wiki/ → 500,
-// /moodle/ → 404 (redirects to admin upgrade). Needs a fix on the next on-LAN
-// deploy. Marked fixme so CI stays green but the regression is tracked — remove
-// `.fixme` once the containers are healthy again.
-test.fixme("public course apps are reachable", async ({ request }) => {
+// Fixed 2026-06-27: /wiki/ had a stale DB-host IP in LocalSettings; /moodle/ was
+// stuck in an adminsetuppending redirect loop. Now an active regression guard.
+test("public course apps are reachable", async ({ request }) => {
   for (const p of ["/wiki/", "/moodle/"]) {
     const res = await request.get(p);
     expect(res.status(), p).toBeLessThan(400);
