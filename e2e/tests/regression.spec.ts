@@ -24,6 +24,9 @@ test.describe("downloads", () => {
 
   test("every link on the downloads page resolves (no dangling artifact)", async ({ page, request }) => {
     await page.goto("/downloads/");
+    // The page renders from projects.json + verifies each file client-side, so
+    // wait for the rendered download links before scraping them.
+    await page.waitForSelector('a.dl[href^="/downloads/"]', { timeout: 15_000 });
     const hrefs = await page.locator('a[href^="/downloads/"]').evaluateAll((els) =>
       els.map((e) => (e as HTMLAnchorElement).getAttribute("href")!).filter(Boolean)
     );
