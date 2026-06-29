@@ -7,9 +7,10 @@ const DOWNLOADS: Record<string, number> = {
   "SensitivityFinder.apk": 100_000,
   "FinanceWatcher.apk": 100_000,
   "Mappy.apk": 1_000_000,
-  "SensitivityFinder.exe": 10_000_000,
-  "FinanceWatcher.exe": 10_000_000,
-  "Mappy.exe": 10_000_000,
+  // Windows apps ship zipped — a bare unsigned .exe gets hard-blocked by browsers.
+  "SensitivityFinder.zip": 10_000_000,
+  "FinanceWatcher.zip": 10_000_000,
+  "Mappy.zip": 10_000_000,
 };
 
 test.describe("downloads", () => {
