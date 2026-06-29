@@ -2,39 +2,43 @@ import { expect, test } from "@playwright/test";
 
 // Regression guards for things that have broken before. Hits the live homelab.
 
+// Artifacts are hosted on GitHub Releases (the NAS home-uplink can't serve 74 MB
+// reliably to external users). url -> minimum plausible size in bytes.
 const DOWNLOADS: Record<string, number> = {
-  // file -> minimum plausible size in bytes (catches truncated / 0-byte / missing)
-  "SensitivityFinder.apk": 100_000,
-  "FinanceWatcher.apk": 100_000,
-  "Mappy.apk": 1_000_000,
+  "https://github.com/UnikSF/SensitivityFinder/releases/download/v1.0.0/SensitivityFinder.apk": 100_000,
+  "https://github.com/UnikSF/FinanceWatcher/releases/download/v1.0.0/FinanceWatcher.apk": 100_000,
+  "https://github.com/UnikSF/Mappy/releases/download/v1.0.0/Mappy.apk": 1_000_000,
   // Windows apps ship zipped — a bare unsigned .exe gets hard-blocked by browsers.
-  "SensitivityFinder.zip": 10_000_000,
-  "FinanceWatcher.zip": 10_000_000,
-  "Mappy.zip": 10_000_000,
+  "https://github.com/UnikSF/SensitivityFinder/releases/download/v1.0.0/SensitivityFinder.zip": 10_000_000,
+  "https://github.com/UnikSF/FinanceWatcher/releases/download/v1.0.0/FinanceWatcher.zip": 10_000_000,
+  "https://github.com/UnikSF/Mappy/releases/download/v1.0.0/Mappy.zip": 10_000_000,
 };
 
 test.describe("downloads", () => {
-  for (const [file, minSize] of Object.entries(DOWNLOADS)) {
+  for (const [url, minSize] of Object.entries(DOWNLOADS)) {
+    const file = url.split("/").pop()!;
     test(`${file} is served and not truncated`, async ({ request }) => {
-      const res = await request.head(`/downloads/${file}`);
-      expect(res.status(), `${file} status`).toBe(200);
-      const len = Number(res.headers()["content-length"] ?? "0");
+      // request follows GitHub's redirect to its CDN; Range avoids pulling 74 MB.
+      const res = await request.get(url, { headers: { Range: "bytes=0-0" } });
+      expect([200, 206], `${file} status`).toContain(res.status());
+      const len = Number(
+        res.headers()["content-range"]?.split("/")[1] ?? res.headers()["content-length"] ?? "0"
+      );
       expect(len, `${file} size`).toBeGreaterThan(minSize);
     });
   }
 
-  test("every link on the downloads page resolves (no dangling artifact)", async ({ page, request }) => {
+  test("every download link on the page resolves (no dangling artifact)", async ({ page, request }) => {
     await page.goto("/downloads/");
-    // The page renders from projects.json + verifies each file client-side, so
-    // wait for the rendered download links before scraping them.
-    await page.waitForSelector('a.dl[href^="/downloads/"]', { timeout: 15_000 });
-    const hrefs = await page.locator('a[href^="/downloads/"]').evaluateAll((els) =>
+    // The page renders from projects.json; artifacts now live on GitHub Releases.
+    await page.waitForSelector('a.dl[href^="https://github.com"]', { timeout: 15_000 });
+    const hrefs = await page.locator('a.dl[href^="https://github.com"]').evaluateAll((els) =>
       els.map((e) => (e as HTMLAnchorElement).getAttribute("href")!).filter(Boolean)
     );
     expect(hrefs.length).toBeGreaterThan(0);
     for (const href of [...new Set(hrefs)]) {
-      const res = await request.head(href);
-      expect(res.status(), href).toBe(200);
+      const res = await request.get(href, { headers: { Range: "bytes=0-0" } });
+      expect([200, 206], href).toContain(res.status());
     }
   });
 });
